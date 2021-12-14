@@ -52,7 +52,7 @@ insights I discover will then help guide marketing strategy for the company.
 
 # Share 
 
-- Presentation of the results: [Google slide]()
+- Presentation of the results: [Google slide](https://docs.google.com/presentation/d/1My3k_14z_X04lL7PPPAfVO5ewRSGjpAnJDK_lTh3UC4/edit?usp=sharing) or a slide file in `slide` folder
 
 # Act
 
