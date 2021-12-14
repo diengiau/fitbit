@@ -1,0 +1,232 @@
+---
+title: "Fitbit Health"
+author: "Richard"
+date: "12/12/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+Load necessary packages:
+```{r}
+library(tidyverse)
+library(lubridate)
+library(skimr)
+library(ggplot2)
+library(janitor)
+library(broom)
+library(kableExtra)
+```
+
+# 1. Import data
+
+There are 18 data for this project, but we only use necessary files that may be useful for our analysis.
+```{r}
+Activity <- read.csv("data/raw/csv/dailyActivity_merged.csv")
+Sleep <- read.csv("data/raw/csv/sleepDay_merged.csv")
+Intensities <- read.csv("data/raw/csv/hourlyIntensities_merged.csv")
+
+calories <- read.csv("data/raw/csv/hourlyCalories_merged.csv")
+weight <- read.csv("data/raw/csv/weightLogInfo_merged.csv")
+```
+
+```{r}
+head(Activity)
+Activity = Activity %>% 
+  clean_names()
+```
+```{r}
+head(Sleep)
+Sleep = Sleep %>% 
+  clean_names()
+```
+
+```{r}
+head(Intensities)
+Intensities = Intensities %>% 
+  clean_names()
+```
+
+
+# 2. Wrangle and merge data
+
+Change to correct date format:
+```{r}
+Activity = Activity %>% 
+  mutate(activity_date = mdy(activity_date))
+head(Activity)
+```
+
+```{r}
+Sleep = ccccc %>% 
+  mutate(
+    sleep_day = mdy_hms(sleep_day)
+  )
+head(Sleep)
+```
+
+```{r}
+Intensities = Intensities %>% 
+  mutate(activity_hour = mdy_hms(activity_hour),
+         hour = hour(activity_hour))
+```
+
+
+In the data, `id` is the respondent. Let check how many people in each data:
+```{r}
+n_distinct(Activity$id) #33
+n_distinct(Sleep$id) #24
+```
+How many unique dates in each file?
+```{r}
+length(unique(Activity$activity_date)) # 31 days
+length(unique(Sleep$sleep_day))
+```
+Make sure we don't have duplicates in data:
+```{r}
+duplicated(Activity %>% select(id, activity_date)) %>% sum()
+duplicated(Sleep %>% select(id, sleep_day)) %>% sum()
+```
+Merge data:
+```{r}
+Df = Activity %>% 
+  inner_join(Sleep, by=c("id", "activity_date"="sleep_day"))
+
+head(Df)
+```
+
+
+# 3. Clean up and add data to prepare for analysis
+
+
+
+
+# 4. Descriptive Statistics and Analysis
+
+Summary statistics:
+```{r}
+skim_without_charts(Df)
+```
+
+Some scatter plot of relations between two variables:
+```{r}
+ggplot(data=Activity, aes(x=total_steps, y=calories)) + 
+  geom_point() + geom_smooth() + labs(title="Total Steps vs. Calories")
+```
+
+
+```{r}
+ggplot(data=Activity, aes(x=total_distance, y=calories)) + 
+  geom_point() + geom_smooth() + 
+  labs(title="Total Distance vs. Calories", 
+       subtitle = "An inverted relation between total distance and calories")
+```
+
+```{r}
+f3 = ggplot(data=Activity, aes(x=very_active_distance, y=calories)) + 
+  geom_point() + geom_smooth() + 
+  labs(
+    title="Very active distance vs. Calories",
+    subtitle="An inverted U-shaped curve"
+  )
+f3
+
+ggsave(f3, filename = "fig/f3_very_active_calories.png")
+
+```
+
+
+```{r}
+ggplot(data=Activity, aes(x=moderately_active_distance, y=calories)) + 
+  geom_point() + geom_smooth() + 
+  labs(title="Moderately active distance vs. Calories")
+```
+```{r}
+f2 = ggplot(data=Activity, aes(x=light_active_distance, y=calories)) + 
+  geom_point() + geom_smooth() + 
+  theme_minimal() +
+  xlab("Light active distance") + ylab("Calories") + 
+  labs(
+    title="Light active distance vs. Calories",
+    subtitle = "Higher light active distance, higher calories"
+  )
+f2
+ggsave(f2, filename = "fig/f2_light_active_calories.png")
+```
+
+A regression analysis of active levels and calories:
+```{r}
+m1 = lm(calories ~ light_active_distance + moderately_active_distance + very_active_distance, data = Activity)
+tidy(m1) %>%
+  kbl(
+    digits = 2,
+    caption = "Light active has the largest regression coefficient",
+  ) %>%
+  kable_styling(bootstrap_options = c("striped", "hover"), full_width = F)
+```
+
+
+```{r}
+ggplot(data=Df, aes(x=calories, y=total_minutes_asleep)) + 
+  geom_point() + geom_smooth() + labs(title="Total Steps vs. Total minutes asleep")
+```
+
+```{r}
+f4 = ggplot(data=Df, aes(x=total_time_in_bed, y=total_minutes_asleep)) + 
+  geom_point() + geom_smooth() + 
+  labs(
+    title="Total time in bed vs. Total minutes asleep"
+  )
+
+f4
+ggsave(f4, filename = "fig/f4_on_bed_and_asleep.png")
+
+```
+
+Intensities over hours: to see how people's intensities change by hours in a day.
+```{r}
+Intensities %>% 
+  group_by(hour) %>% 
+  summarize(
+    total_intensity = mean(total_intensity, na.rm=TRUE),
+    average_intensity = mean(average_intensity, na.rm=TRUE)
+  ) %>% 
+  ungroup() %>% 
+  ggplot(aes(x=hour, y=total_intensity)) + geom_bar(stat = "identity")
+```
+
+
+Fraction of very active, moderately active, and light active distance: most of time in a day, they spend on light activities.
+```{r}
+f1 = Activity %>% 
+  summarize(
+    `very active` = mean(very_active_distance/total_distance*100, na.rm=TRUE),
+    moderate = mean(moderately_active_distance/total_distance*100, na.rm=TRUE),
+    light = mean(light_active_distance/total_distance*100, na.rm=TRUE),
+  ) %>% 
+  pivot_longer(everything()) %>% 
+  ggplot(aes(x=name, y=value)) + geom_bar(stat = "identity") +
+  theme_minimal() +
+  xlab("Active levels") + ylab("Percentage") + 
+  labs(
+    title = "Fraction of distance by active levels",
+    subtitle = "Light active attributes for more than 70 percent"
+  )
+
+ggsave(f1, filename = "fig/f1_fraction_of_activeness.png")
+```
+
+# 5. Visualization
+
+
+
+
+
+
+
+
+
+
+
