@@ -1,6 +1,8 @@
 # fitbit
 Case study 2 for Google Data Analytics class.
 
+![](bellabeat_logo.png)
+
 In this case study, I am working as a junior data analyst for a fictional company, Bellabeat, a high-tech manufacturer of health-focused products for women. 
 
 # Ask
