@@ -19,13 +19,32 @@ insights I discover will then help guide marketing strategy for the company.
 
 # Analyze
 
-- Code: in the `code` folder
+- Code: in the `code` folder, we have an [Rmd code file](code/01_fitbit.Rmd).
 
 - Some key findings are:
 
-1. 
+1. Most of time, people just have light activities (more than 70%).
 
-![Fig 1. ](fig/fig1_casual_member.png)
+![Fig 1. Active levels daily](fig/f1_fraction_of_activeness.png)
+
+2. There is a positive relation between light activites and calories.
+
+![Fig 2. Light active distance and calories](fig/f2_light_active_calories.png)
+
+3. There is an inverted U-shaped relation between very-active activities and calories. It means that after some very active time, the calories will not increase at the same pace as initially.
+
+![Fig 3. Very active distance and calories](fig/f3_very_active_calories.png)
+
+4. Compare to other active levels, light activities have the strongest effect on calories through a simple OLS regression analysis.
+
+![Table 1. Regression `calories` on active levels](fig/t1_reg_calories.png)
+
+5. There is a positive relation between time on bed and the number of minutes asleep.
+
+![Fig 4. Time on bed and asleep](fig/f4_on_bed_and_asleep.png)
+
+
+
 
 
 
@@ -35,9 +54,11 @@ insights I discover will then help guide marketing strategy for the company.
 
 # Act
 
-I make a slide with three recommendations in the slide:
+I make three recommendations as follow:
 
-
+1. Motive users to have break time to do some light exercises such as walk around
+1. Notify users if they spend too much on very heavy exercises
+1. Add function to remind users to sleep after spending some time on bed
 
 # Contact
 
